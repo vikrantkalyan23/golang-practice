@@ -1,6 +1,6 @@
 # Go (Golang): From Scratch to Expert
 
-A practical guide to understanding Go, choosing it for the right problems, and learning it through progressively harder projects.
+Go (Golang) is primarily written in Go itself. A small portion of its low-level runtime and compiler also uses assembly language, while its original version was written in C.
 
 ## Contents
 
