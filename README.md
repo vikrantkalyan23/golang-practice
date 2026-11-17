@@ -8,6 +8,7 @@ Go (Golang) is primarily written in Go itself. A small portion of its low-level 
 - [Why use Go?](#why-use-go)
 - [Where to use Go](#where-to-use-go)
 - [Comparison with other languages](#comparison-with-other-languages)
+- [Go frameworks, use cases, and comparisons](#go-frameworks-use-cases-and-comparisons)
 - [Complete syllabus and roadmap](#complete-syllabus-and-roadmap)
 - [Capstone projects](#capstone-projects)
 - [How to study and measure progress](#how-to-study-and-measure-progress)
@@ -112,6 +113,82 @@ Performance and development speed depend on the application. A CPU-heavy algorit
 - **Go is not class-based:** Methods and interfaces support many object-oriented techniques, but Go has no traditional class inheritance hierarchy.
 - **Garbage collection is not leak prevention:** Retained references, unbounded queues, and abandoned goroutines can still exhaust resources.
 - **Compilation is not a performance guarantee:** Measure representative workloads before choosing or optimizing a language.
+
+## Go frameworks, use cases, and comparisons
+
+Go does not require a framework to build an application. Its standard library already provides HTTP servers, routing, testing, and database interfaces. Frameworks add conveniences such as request binding, middleware, application structure, or generated service code.
+
+The tables below cover a representative selection, rather than every available project. Project names link to official documentation or repositories. Features and compatibility can change between major versions; use documentation matching the version in your `go.mod`.
+
+### Web frameworks and HTTP routers
+
+A **router** maps requests to handlers. A **web framework** adds conventions and helpers around routing. A broader **application framework** may also organize controllers, persistence, templates, and development workflows.
+
+| Option | What it provides | Example use case | Main advantage | Tradeoff to consider |
+| --- | --- | --- | --- | --- |
+| [`net/http`](https://pkg.go.dev/net/http) | Standard-library HTTP client/server, handlers, middleware composition, and `ServeMux` routing | A webhook receiver, small API, or service with custom requirements | Direct access to standard Go HTTP interfaces with no third-party framework dependency | You assemble validation, response conventions, and other application helpers |
+| [Chi](https://github.com/go-chi/chi) | Lightweight router with nested routes, route groups, and middleware | A modular REST API that uses standard HTTP handlers | Composes directly with `http.Handler` and standard HTTP middleware | It is a router, so application-level features require separate choices |
+| [Gin](https://gin-gonic.com/en/docs/) | Web framework with routing, middleware, request binding, validation integration, and rendering | A JSON CRUD API or backend for a mobile app | Convenient request/response helpers reduce repetitive handler code | Handlers use Gin's context API; persistence and application architecture remain your responsibility |
+| [Echo](https://echo.labstack.com/) | Web framework with routing, binding, centralized error handling, and middleware | A business API needing consistent HTTP behavior across endpoints | A compact framework API with common HTTP conveniences | Framework-specific contexts and handler signatures need adaptation when mixing abstractions |
+| [Fiber](https://docs.gofiber.io/) | Express-inspired web framework built on `fasthttp` | An API for a team that prefers Express-style routing and middleware | Familiar API for Express users and a performance-oriented HTTP stack | Its native handlers differ from `net/http`; check adapters, middleware compatibility, and request-data lifetimes |
+| [Beego](https://github.com/beego/beego) | Broader framework with MVC-style organization and components such as ORM, caching, and sessions | A structured business application with controllers and persistence | More integrated application components and conventions | More framework concepts to learn and stronger architectural conventions |
+| [Buffalo](https://github.com/gobuffalo/buffalo) | Web application toolkit with scaffolding and development tooling | A server-rendered application with templates and an asset workflow | Helps establish an application workflow quickly | Generated structure and tooling add conventions and dependencies |
+
+Gin and Echo run on `net/http`, but their native handlers use framework-specific contexts. Chi uses standard handler signatures directly. Fiber uses a different HTTP stack, so check integration requirements before choosing it. See the official [Chi](https://github.com/go-chi/chi), [Gin](https://gin-gonic.com/en/docs/), [Echo](https://echo.labstack.com/), and [Fiber](https://docs.gofiber.io/) documentation for their APIs.
+
+### Service and API-generation frameworks
+
+These options solve broader service-development problems than URL routing alone. They can introduce generated code, contracts, and operational conventions.
+
+| Framework | Main approach | Example use case | Why consider it | Tradeoff to consider |
+| --- | --- | --- | --- | --- |
+| [Goa](https://goa.design/) | Design-first API framework that generates transport code, clients, validation, and specifications from a Go DSL | A service with an API contract shared by multiple clients | Keeps generated server/client artifacts tied to one API design | Requires learning the DSL and maintaining a generation workflow |
+| [go-zero](https://go-zero.dev/) | Service framework with API/RPC code generation and resilience features | A collection of APIs and RPC services needing shared conventions | Provides service scaffolding and operational building blocks | Generated structure and framework conventions become part of the development workflow |
+| [Kratos](https://go-kratos.dev/docs/) | Service framework with HTTP/gRPC transports and middleware/configuration facilities | A team building services around Protocol Buffers and consistent transport behavior | Provides common service infrastructure across transports | More concepts and tooling than a small standalone HTTP service needs |
+| [gqlgen](https://gqlgen.com/) | Schema-first GraphQL server library with generated Go types and resolver scaffolding | A GraphQL API serving web and mobile clients | Uses a GraphQL schema to guide typed server implementation | Resolver design, authorization, query cost, and N+1 database access still need explicit handling |
+
+### Related frameworks and libraries beyond HTTP
+
+These tools address different layers of an application. They can be combined with a web framework; they are not replacements for HTTP routing.
+
+| Tool | Category | Example use case | Main benefit | Tradeoff to consider |
+| --- | --- | --- | --- | --- |
+| [Cobra](https://cobra.dev/) | CLI framework/library | A tool with commands such as `app user add` and `app user list` | Organizes subcommands, flags, help, and completion | More structure than the standard `flag` package needs for a tiny utility |
+| [GORM](https://gorm.io/docs/) | Object-relational mapping library | A database-backed application with CRUD operations and associations | Provides model-based database operations, transactions, and relationship helpers | Inspect generated SQL and query behavior; ORM convenience does not replace SQL knowledge |
+| [Ent](https://entgo.io/docs/getting-started/) | Schema-driven entity framework with code generation | An application wanting typed database queries based on schemas defined in Go | Generates entity and query APIs from a defined schema | Adds schema and code-generation workflows; database design still matters |
+
+For example, a service might use **Chi for HTTP routing and Ent for persistence**, while an administration tool uses **Cobra**. Choose each dependency for the problem it solves.
+
+### How to choose for a project
+
+The following are practical starting points based on the capabilities above, rather than a universal ranking.
+
+| Requirement | Options to evaluate | Reason |
+| --- | --- | --- |
+| Learn HTTP fundamentals | `net/http` | Makes handlers, requests, responses, and middleware explicit |
+| Add routing while keeping standard handler signatures | Chi | Focuses on composable routing |
+| Build a REST API with binding and response helpers | Gin or Echo | Provides common web-layer conveniences |
+| Use an Express-like API | Fiber | Offers a familiar style; verify integration with your dependencies |
+| Use MVC and integrated application components | Beego | Provides broader application conventions |
+| Scaffold a server-rendered web application | Buffalo | Provides application and development tooling |
+| Generate services and clients from an API design | Goa | Centers development on a shared API contract |
+| Standardize API/RPC services and resilience facilities | go-zero | Provides generation and service-level building blocks |
+| Build services with HTTP/gRPC transport conventions | Kratos | Organizes shared service infrastructure |
+| Expose a GraphQL schema | gqlgen | Generates typed GraphQL server scaffolding |
+| Build a multi-command terminal tool | Cobra | Models command trees and flags |
+
+Before adopting a dependency, check its supported Go version, release activity, security policy, license, documentation, and compatibility with the middleware and deployment environment you need. Compare performance with your own handlers, database calls, payloads, and concurrency limits; routing-only benchmarks do not establish which framework will make your application fastest.
+
+### Suggested framework learning path
+
+1. Learn Go fundamentals, errors, interfaces, testing, and `context` first.
+2. Build a small API with `net/http` and test it with `httptest`.
+3. Rebuild the same endpoints with Chi, Gin, or Echo to compare routing, validation, errors, and tests.
+4. Add a database and learn SQL before deciding whether GORM or Ent helps your project.
+5. Explore Fiber, GraphQL, or service-generation frameworks when a project needs their specific capabilities.
+6. Deploy one application with authentication, telemetry, resource limits, and graceful shutdown.
+
+Learning every framework is unnecessary. Understanding HTTP, SQL, concurrency, and testing makes it easier to evaluate and switch tools.
 
 ## Complete syllabus and roadmap
 
